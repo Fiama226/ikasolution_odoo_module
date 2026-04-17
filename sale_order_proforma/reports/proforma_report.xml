@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_proforma_document">
+        <t t-call="web.external_layout">
+            <t t-set="title">PROFORMA N° <span t-field="doc.name"/></t>
+            
+            <div class="header">
+                <h1 style="text-align: center; background-color: #f0f0f0; padding: 10px;">
+                    PROFORMA N° <span t-field="doc.name"/>
+                </h1>
+            </div>
+            
+            <div class="page">
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-6">
+                        <h4>De:</h4>
+                        <div t-field="doc.company_id" t-options='{"widget": "contact", "fields": ["name", "address", "phone", "email"]}'/>
+                    </div>
+                    <div class="col-6">
+                        <h4>Facturer à:</h4>
+                        <div t-field="doc.partner_id" t-options='{"widget": "contact", "fields": ["name", "address", "phone", "email"]}'/>
+                    </div>
+                </div>
+                
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-6">
+                        <p><strong>Date:</strong> <span t-field="doc.date_order"/></p>
+                    </div>
+                    <div class="col-6">
+                        <p><strong>Validité:</strong> <span t-field="doc.validity_date"/></p>
+                    </div>
+                </div>
+                
+                <table class="table table-sm table-bordered" style="margin-top: 20px;">
+                    <thead>
+                        <tr style="background-color: #f0f0f0;">
+                            <th>Description</th>
+                            <th>Quantité</th>
+                            <th>Prix Unitaire</th>
+                            <th>TVA</th>
+                            <th>Total HT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="doc.order_line" t-as="line">
+                            <tr>
+                                <td><span t-field="line.product_id.name"/></td>
+                                <td class="text-right"><span t-field="line.product_uom_qty"/></td>
+                                <td class="text-right"><span t-field="line.price_unit" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                                <td class="text-right"><span t-field="line.tax_id"/></td>
+                                <td class="text-right"><span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-8"/>
+                    <div class="col-4">
+                        <table class="table table-sm table-bordered">
+                            <tr>
+                                <td><strong>Total HT</strong></td>
+                                <td class="text-right"><span t-field="doc.amount_untaxed" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>TVA</strong></td>
+                                <td class="text-right"><span t-field="doc.amount_tax" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                            </tr>
+                            <tr style="font-weight: bold; background-color: #f0f0f0;">
+                                <td><strong>Total TTC</strong></td>
+                                <td class="text-right"><span t-field="doc.amount_total" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div t-if="doc.note" style="margin-top: 20px;">
+                    <h4>Conditions:</h4>
+                    <p t-field="doc.note"/>
+                </div>
+                
+                <div class="row" style="margin-top: 50px;">
+                    <div class="col-6">
+                        <h4>Signature Société</h4>
+                        <div t-if="show_company_signature and doc.company_id.company_signature">
+                            <img t-att-src="image_data_uri(doc.company_id.company_signature)" style="max-height: 150px;"/>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <p><strong t-field="doc.company_id.signatory_title"/></p>
+                            <p t-if="doc.company_id.signatory_name"><strong t-field="doc.company_id.signatory_name"/></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+    
+    <template id="report_proforma">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="sale_order_proforma.report_proforma_document"/>
+        </t>
+    </template>
+    
+    <record id="action_report_proforma" model="ir.actions.report">
+        <field name="name">Proforma (avec signature)</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_order_proforma.report_proforma</field>
+        <field name="report_file">sale_order_proforma.report_proforma</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

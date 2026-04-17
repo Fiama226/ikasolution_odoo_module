@@ -1,0 +1,117 @@
+
+# Cahier des charges – Proforma + Bon de commande avec numérotation et signatures (Odoo 18)
+
+## 1) Contexte
+Nous utilisons **Odoo 18 – module Ventes (sale)** avec **signature client standard via le portail**.  
+Nous souhaitons mettre en place une gestion “Proforma” basée sur le devis, avec :
+- une **numérotation Proforma dédiée** tant que le devis n’est pas confirmé,
+- une **numérotation Bon de commande dédiée** une fois confirmé,
+- une **signature société (automatique)** sur la Proforma envoyée au client,
+- une **signature client + société** sur le Bon de commande,
+- des **PDF QWeb 100% personnalisés**.
+
+La base est en **multi-société**.
+
+---
+
+## 2) Numérotation & cycle de vie
+
+### 2.1 Devis = Proforma (avant confirmation)
+- À la **création** d’un devis (`sale.order` en état *draft/sent*), le champ **`name`** doit être automatiquement attribué au format :
+
+**PF/YYYY/NNNN**
+- YYYY = année en cours
+- NNNN = compteur sur **4 chiffres**
+- Le compteur est **réinitialisé chaque année**.
+- Le devis “non confirmé” est considéré comme une **Proforma**.
+
+### 2.2 Confirmation = Bon de commande
+- Lors de la **confirmation** du devis :
+  - le champ **`name`** doit être **renuméroté** au format :
+
+**BC/YYYY/NNNN**
+- NNNN sur **4 chiffres**
+- Compteur **réinitialisé chaque année**
+
+### 2.3 Conservation du numéro Proforma
+- Même après confirmation et renumérotation en BC, il faut **conserver** le numéro Proforma d’origine dans un champ dédié (ex: `proforma_number`) et l’afficher dans les documents (BC).
+
+---
+
+## 3) Multi-société
+- Les séquences PF et BC doivent être **par société** (indépendantes).
+- La signature société doit être **par société** (chaque société peut avoir sa propre signature, son titre, son nom).
+
+---
+
+## 4) Signatures
+
+### 4.1 Signature Société (automatique)
+- Signature société = **une seule image** (signature + cachet combinés).
+- Elle doit être configurée au niveau de la **société** (res.company).
+
+En plus de l’image, on doit pouvoir configurer :
+- **Titre du signataire** (valeur par défaut : “Directeur Général”)
+- **Nom du signataire** (ex : “Yaya OUATTARA”)
+
+### 4.2 Signature Client
+- Utilisation de la signature **standard Odoo portail** (champ `sale.order.signature`) avec :
+  - image signature
+  - nom (`signed_by`)
+  - date (`signed_on`)
+
+---
+
+## 5) Rapports PDF (QWeb personnalisés)
+
+### 5.1 Exigence générale
+- Les documents doivent être générés via des **rapports QWeb totalement personnalisés** (pas une simple adaptation du standard).
+- Le rendu doit être professionnel (structure en-tête/pied, bande grise titre, tableau lignes, totaux, etc.). tu peux generer
+
+### 5.2 Proforma (devis non confirmé)
+- Titre : **“PROFORMA N° PF/YYYY/NNNN”**
+- Le document envoyé au client (PDF) doit être **une Proforma avec signature société affichée automatiquement**.
+- Il doit exister une **variante interne** “Proforma sans signature” :
+  - l’image de signature société ne s’affiche pas,
+  - MAIS le texte (Titre + Nom) s’affiche quand même :
+    - “Directeur Général”
+    - “Nom”
+
+### 5.3 Bon de commande (devis confirmé)
+- Titre : **“BON DE COMMANDE N° BC/YYYY/NNNN”**
+- Afficher une ligne : **“Réf. Proforma : PF/YYYY/NNNN”**
+- Signatures en bas de page :
+  - **À gauche : bloc client**
+    - libellé : “Client (Nom + Signature + Date)”
+    - afficher signature + signed_by + signed_on
+  - **À droite : bloc société**
+    - “Directeur Général / Nom”
+    - + image signature société
+
+---
+
+## 6) Envoi au client / Email
+- Lorsque l’utilisateur clique sur **“Envoyer au client”** (quotation send), le **PDF joint** doit être la **Proforma avec signature société** (pas la version sans signature).
+- Le lien portail / aperçu doit être cohérent avec la Proforma (avec signature société).
+
+---
+
+## 7) Impression interne
+Dans le menu **Imprimer** du devis non confirmé, fournir 2 choix :
+1) **Proforma (avec signature)**
+2) **Proforma (sans signature)**
+
+---
+
+## 8) Livrables attendus du consultant
+- Un module Odoo 18 installable (addon) qui :
+  - crée/paramètre les séquences PF et BC (reset annuel, padding 4, multi-société),
+  - gère la renumérotation PF → BC à confirmation + conservation `proforma_number`,
+  - ajoute les champs société (signature image + titre + nom) avec vues de configuration,
+  - fournit les rapports QWeb personnalisés :
+    - Proforma avec signature
+    - Proforma sans signature (interne)
+    - Bon de commande avec 2 signatures (client gauche / société droite)
+  - met à jour l’action d’envoi/de rapport pour que l’email client attache la Proforma avec signature.
+
+---

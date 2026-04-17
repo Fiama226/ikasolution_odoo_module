@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_bon_commande_document">
+        <t t-call="web.external_layout">
+            <t t-set="title">BON DE COMMANDE N° <span t-field="doc.name"/></t>
+            
+            <div class="header">
+                <h1 style="text-align: center; background-color: #333; color: white; padding: 10px;">
+                    BON DE COMMANDE N° <span t-field="doc.name"/>
+                </h1>
+                <p t-if="doc.proforma_number" style="text-align: center; font-size: 12px; margin-top: 5px;">
+                    Réf. Proforma : <strong t-field="doc.proforma_number"/>
+                </p>
+            </div>
+            
+            <div class="page">
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-6">
+                        <h4>Fournisseur:</h4>
+                        <div t-field="doc.company_id" t-options='{"widget": "contact", "fields": ["name", "address", "phone", "email"]}'/>
+                    </div>
+                    <div class="col-6">
+                        <h4>Client:</h4>
+                        <div t-field="doc.partner_id" t-options='{"widget": "contact", "fields": ["name", "address", "phone", "email"]}'/>
+                    </div>
+                </div>
+                
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-6">
+                        <p><strong>Date:</strong> <span t-field="doc.date_order"/></p>
+                    </div>
+                    <div class="col-6">
+                        <p><strong>Validité:</strong> <span t-field="doc.validity_date"/></p>
+                    </div>
+                </div>
+                
+                <table class="table table-sm table-bordered" style="margin-top: 20px;">
+                    <thead>
+                        <tr style="background-color: #333; color: white;">
+                            <th style="color: white;">Description</th>
+                            <th style="color: white;">Quantité</th>
+                            <th style="color: white;">Prix Unitaire</th>
+                            <th style="color: white;">TVA</th>
+                            <th style="color: white;">Total HT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="doc.order_line" t-as="line">
+                            <tr>
+                                <td><span t-field="line.product_id.name"/></td>
+                                <td class="text-right"><span t-field="line.product_uom_qty"/></td>
+                                <td class="text-right"><span t-field="line.price_unit" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                                <td class="text-right"><span t-field="line.tax_id"/></td>
+                                <td class="text-right"><span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-8"/>
+                    <div class="col-4">
+                        <table class="table table-sm table-bordered">
+                            <tr>
+                                <td><strong>Total HT</strong></td>
+                                <td class="text-right"><span t-field="doc.amount_untaxed" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>TVA</strong></td>
+                                <td class="text-right"><span t-field="doc.amount_tax" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                            </tr>
+                            <tr style="font-weight: bold; background-color: #333; color: white;">
+                                <td style="color: white;"><strong>Total TTC</strong></td>
+                                <td style="color: white;" class="text-right"><span t-field="doc.amount_total" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div t-if="doc.note" style="margin-top: 20px;">
+                    <h4>Conditions:</h4>
+                    <p t-field="doc.note"/>
+                </div>
+                
+                <div class="row" style="margin-top: 80px;">
+                    <div class="col-6">
+                        <h4 style="background-color: #f0f0f0; padding: 5px;">Signature Client</h4>
+                        <p style="font-size: 11px; color: #666;">(Nom + Signature + Date)</p>
+                        <div style="min-height: 100px; border: 1px solid #ddd; padding: 10px; margin-top: 10px;">
+                            <div t-if="doc.signature">
+                                <img t-att-src="'data:image/png;base64,' + doc.signature" style="max-height: 80px;"/>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <p t-if="doc.signed_by"><strong>Signé par:</strong> <span t-field="doc.signed_by"/></p>
+                                <p t-if="doc.signed_on"><strong>Date:</strong> <span t-field="doc.signed_on"/></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6" style="text-align: right;">
+                        <h4 style="background-color: #f0f0f0; padding: 5px;">Signature Société</h4>
+                        <div style="min-height: 100px; border: 1px solid #ddd; padding: 10px; margin-top: 10px; display: inline-block;">
+                            <div t-if="doc.company_id.company_signature">
+                                <img t-att-src="image_data_uri(doc.company_id.company_signature)" style="max-height: 80px;"/>
+                            </div>
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <p><strong t-field="doc.company_id.signatory_title"/></p>
+                            <p t-if="doc.company_id.signatory_name"><strong t-field="doc.company_id.signatory_name"/></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+    
+    <template id="report_bon_commande">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="sale_order_proforma.report_bon_commande_document"/>
+        </t>
+    </template>
+    
+    <record id="action_report_bon_commande" model="ir.actions.report">
+        <field name="name">Bon de Commande</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_order_proforma.report_bon_commande</field>
+        <field name="report_file">sale_order_proforma.report_bon_commande</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

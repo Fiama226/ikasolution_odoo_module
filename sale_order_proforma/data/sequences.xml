@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Séquence Proforma -->
+    <record id="seq_sale_order_proforma" model="ir.sequence">
+        <field name="name">Proforma</field>
+        <field name="code">sale.order.proforma</field>
+        <field name="prefix">PF/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_dependent" eval="True"/>
+        <field name="implementation">standard</field>
+    </record>
+
+    <!-- Séquence Bon de Commande -->
+    <record id="seq_sale_order_bon_commande" model="ir.sequence">
+        <field name="name">Bon de Commande</field>
+        <field name="code">sale.order.bon_commande</field>
+        <field name="prefix">BC/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_dependent" eval="True"/>
+        <field name="implementation">standard</field>
+    </record>
+</odoo>
