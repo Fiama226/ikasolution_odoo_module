@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="html">
             <xpath expr="//field[@name='name']" position="after">
-                <field name="proforma_number" readonly="1" attrs="{'invisible': [('proforma_number', '=', False)]}"/>
+		<field name="proforma_number" attrs="{'invisible': [('proforma_number', '=', False)], 'readonly': True}"/>
             </xpath>
         </field>
     </record>
